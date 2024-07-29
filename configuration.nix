@@ -1,11 +1,23 @@
-
 { config, lib, pkgs, ... }:
 
+let
+  unstableTarball = 
+    fetchTarball https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz;
+in
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
+
+	nixpkgs.config = {
+	packageOverrides = pkgs: {
+		unstable = import unstableTarball {
+		  config = config.nixpkgs.config;
+};
+};
+};
+
 
   # Use the GRUB 2 boot loader.
   boot.loader.grub.enable = true;
@@ -13,6 +25,8 @@
   # boot.loader.grub.efiInstallAsRemovable = true;
   # boot.loader.efi.efiSysMountPoint = "/boot/efi";
   boot.loader.grub.device = "/dev/sda"; # or "nodev" for efi only
+
+  services.xserver.desktopManager.xfce.enable = true;
 
    networking.hostName = "nixos"; # Define your hostname.
   # Pick only one of the below networking options.
@@ -35,7 +49,7 @@
   # };
 
   # Enable the X11 windowing system.
-  # services.xserver.enable = true;
+  services.xserver.enable = true;
 
 
   
@@ -65,15 +79,23 @@
      packages = with pkgs; [
        firefox
        tree
+	bun
+	nodejs
+     git
      ];
    };
 
   # List packages installed in system profile. To search, run:
-  # $ nix search wget
-   environment.systemPackages = with pkgs; [
-     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+  # $	 nix search wget
+   environment = {
+    systemPackages = with pkgs; [
+     vim     
      wget
+	curl
+unzip
    ];
+  };
+
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
